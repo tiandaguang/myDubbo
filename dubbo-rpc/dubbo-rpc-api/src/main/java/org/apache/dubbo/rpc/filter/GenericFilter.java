@@ -51,6 +51,8 @@ public class GenericFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation inv) throws RpcException {
+        System.out.println("GenericFilter#invoke-->invoker" + invoker.getClass() + ",this:" + this.getClass());
+
         if (inv.getMethodName().equals(Constants.$INVOKE)
                 && inv.getArguments() != null
                 && inv.getArguments().length == 3

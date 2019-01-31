@@ -39,6 +39,7 @@ public abstract class AbstractConfiguratorListener implements ConfigurationListe
 
 
     protected final void initWith(String key) {
+
         DynamicConfiguration dynamicConfiguration = DynamicConfiguration.getDynamicConfiguration();
         dynamicConfiguration.addListener(key, this);
         String rawConfig = dynamicConfiguration.getConfig(key);

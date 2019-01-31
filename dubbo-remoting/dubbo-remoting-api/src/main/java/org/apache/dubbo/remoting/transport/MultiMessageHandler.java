@@ -22,7 +22,6 @@ import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.exchange.support.MultiMessage;
 
 /**
- *
  * @see MultiMessage
  */
 public class MultiMessageHandler extends AbstractChannelHandlerDelegate {
@@ -34,6 +33,7 @@ public class MultiMessageHandler extends AbstractChannelHandlerDelegate {
     @SuppressWarnings("unchecked")
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        System.out.println("MultiMessageHandler#received-->message:" + message + ",handler:" + handler.getClass());
         if (message instanceof MultiMessage) {
             MultiMessage list = (MultiMessage) message;
             for (Object obj : list) {

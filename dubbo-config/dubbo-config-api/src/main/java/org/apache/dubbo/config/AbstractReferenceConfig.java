@@ -122,6 +122,15 @@ public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
         return injvm;
     }
 
+
+    /**
+     * @return
+     * @deprecated instead, use the parameter <b>scope</> to judge if it's in jvm, scope=local
+     */
+    @Deprecated
+    public Boolean isInjvmFalse() {
+        return Boolean.FALSE;
+    }
     /**
      * @param injvm
      * @deprecated instead, use the parameter <b>scope</b> to judge if it's in jvm, scope=local

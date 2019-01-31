@@ -22,7 +22,7 @@ import org.apache.dubbo.common.extension.SPI;
 /**
  *
  */
-@SPI("nop")
+@SPI("zookeeper")
 public interface DynamicConfigurationFactory {
 
     DynamicConfiguration getDynamicConfiguration(URL url);

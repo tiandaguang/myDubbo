@@ -61,6 +61,8 @@ public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
 
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        System.out.println("HeartbeatHandler#received-->handler:" + handler.getClass());
+
         setReadTimestamp(channel);
         if (isHeartbeatRequest(message)) {
             Request req = (Request) message;

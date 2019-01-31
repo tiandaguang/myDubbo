@@ -24,11 +24,7 @@ import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.RemotingException;
-import org.apache.dubbo.remoting.exchange.ExchangeChannel;
-import org.apache.dubbo.remoting.exchange.ExchangeHandler;
-import org.apache.dubbo.remoting.exchange.Request;
-import org.apache.dubbo.remoting.exchange.Response;
-import org.apache.dubbo.remoting.exchange.ResponseFuture;
+import org.apache.dubbo.remoting.exchange.*;
 import org.apache.dubbo.remoting.exchange.support.DefaultFuture;
 
 import java.net.InetSocketAddress;
@@ -80,6 +76,8 @@ final class HeaderExchangeChannel implements ExchangeChannel {
 
     @Override
     public void send(Object message, boolean sent) throws RemotingException {
+
+        System.out.println("HeaderExchangeChannel#send--------->message:" + message + ",channel:" + channel.getClass());
         if (closed) {
             throw new RemotingException(this.getLocalAddress(), null, "Failed to send message " + message + ", cause: The channel " + this + " is closed!");
         }
@@ -113,6 +111,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         req.setData(request);
         DefaultFuture future = DefaultFuture.newFuture(channel, req, timeout);
         try {
+            System.out.println("HeaderExchangeChannel#request------->channel:" + channel.getClass());
             channel.send(req);
         } catch (RemotingException e) {
             future.cancel();

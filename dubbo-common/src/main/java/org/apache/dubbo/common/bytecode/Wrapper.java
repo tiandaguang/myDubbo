@@ -23,11 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
@@ -104,12 +100,15 @@ public abstract class Wrapper {
      * @return Wrapper instance(not null).
      */
     public static Wrapper getWrapper(Class<?> c) {
+        System.out.println("Wrapper#getWrapper------->" + OBJECT_WRAPPER.getClass());
+
         while (ClassGenerator.isDynamicClass(c)) // can not wrapper on dynamic class.
         {
             c = c.getSuperclass();
         }
 
         if (c == Object.class) {
+            System.out.println("Wrapper#OBJECT_WRAPPER------->" + OBJECT_WRAPPER.getClass());
             return OBJECT_WRAPPER;
         }
 
@@ -118,6 +117,7 @@ public abstract class Wrapper {
             ret = makeWrapper(c);
             WRAPPER_MAP.put(c, ret);
         }
+        System.out.println("Wrapper#------->" + ret.getClass());
         return ret;
     }
 

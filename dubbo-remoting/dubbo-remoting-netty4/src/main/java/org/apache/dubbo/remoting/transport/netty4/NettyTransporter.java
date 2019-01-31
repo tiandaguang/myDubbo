@@ -16,9 +16,12 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
-import io.netty.channel.EventLoopGroup;
 import org.apache.dubbo.common.URL;
-import org.apache.dubbo.remoting.*;
+import org.apache.dubbo.remoting.ChannelHandler;
+import org.apache.dubbo.remoting.Client;
+import org.apache.dubbo.remoting.RemotingException;
+import org.apache.dubbo.remoting.Server;
+import org.apache.dubbo.remoting.Transporter;
 
 public class NettyTransporter implements Transporter {
 
@@ -26,9 +29,6 @@ public class NettyTransporter implements Transporter {
 
     @Override
     public Server bind(URL url, ChannelHandler listener) throws RemotingException {
-
-        System.out.println("bind");
-        System.out.println(EventLoopGroup.class);
         return new NettyServer(url, listener);
     }
 

@@ -33,6 +33,8 @@ public class EchoFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation inv) throws RpcException {
+        System.out.println("EchoFilter#invoke-->invoker" + invoker.getClass() + ",this:" + this.getClass());
+
         if (inv.getMethodName().equals(Constants.$ECHO) && inv.getArguments() != null && inv.getArguments().length == 1) {
             return new RpcResult(inv.getArguments()[0]);
         }

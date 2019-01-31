@@ -19,13 +19,7 @@ package org.apache.dubbo.rpc.proxy;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
-import org.apache.dubbo.rpc.AsyncRpcResult;
-import org.apache.dubbo.rpc.Invocation;
-import org.apache.dubbo.rpc.Invoker;
-import org.apache.dubbo.rpc.Result;
-import org.apache.dubbo.rpc.RpcContext;
-import org.apache.dubbo.rpc.RpcException;
-import org.apache.dubbo.rpc.RpcResult;
+import org.apache.dubbo.rpc.*;
 import org.apache.dubbo.rpc.support.RpcUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -80,13 +74,14 @@ public abstract class AbstractProxyInvoker<T> implements Invoker<T> {
     // TODO Unified to AsyncResult?
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
+        System.out.println("AbstractProxyInvoker#invoke---------->this:" + this.getClass());
         RpcContext rpcContext = RpcContext.getContext();
         try {
             Object obj = doInvoke(proxy, invocation.getMethodName(), invocation.getParameterTypes(), invocation.getArguments());
             if (RpcUtils.isReturnTypeFuture(invocation)) {
                 return new AsyncRpcResult((CompletableFuture<Object>) obj);
             } else if (rpcContext.isAsyncStarted()) { // ignore obj in case of RpcContext.startAsync()? always rely on user to write back.
-                return new AsyncRpcResult(rpcContext.getAsyncContext().getInternalFuture());
+                return new AsyncRpcResult(((AsyncContextImpl) (rpcContext.getAsyncContext())).getInternalFuture());
             } else {
                 return new RpcResult(obj);
             }

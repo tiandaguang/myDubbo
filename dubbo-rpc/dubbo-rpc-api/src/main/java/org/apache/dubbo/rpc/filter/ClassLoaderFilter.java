@@ -32,6 +32,8 @@ public class ClassLoaderFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        System.out.println("ClassLoaderFilter#invoke-->invoker" + invoker.getClass() + ",this:" + this.getClass());
+
         ClassLoader ocl = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(invoker.getInterface().getClassLoader());
         try {

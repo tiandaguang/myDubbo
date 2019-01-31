@@ -53,9 +53,6 @@ public class Transporters {
         } else {
             handler = new ChannelHandlerDispatcher(handlers);
         }
-
-        System.out.println(getTransporter());
-
         return getTransporter().bind(url, handler);
     }
 

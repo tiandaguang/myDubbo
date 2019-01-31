@@ -143,11 +143,16 @@ public class DefaultFuture implements ResponseFuture {
     }
 
     public static void received(Channel channel, Response response) {
+        System.out.println("DefaultFuture#received-->response:" + response);
         try {
             DefaultFuture future = FUTURES.remove(response.getId());
             if (future != null) {
+                System.out.println("DefaultFuture#received-->future is:" + future);
+
                 future.doReceived(response);
             } else {
+                System.out.println("DefaultFuture#received-->future is:" + future);
+
                 logger.warn("The timeout response finally returned at "
                         + (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
                         + ", response " + response
@@ -262,6 +267,7 @@ public class DefaultFuture implements ResponseFuture {
 
         if (res.getStatus() == Response.OK) {
             try {
+                System.out.println("DefaultFuture#invokeCallback-->callbackCopy:" + callbackCopy.getClass());
                 callbackCopy.done(res.getResult());
             } catch (Exception e) {
                 logger.error("callback invoke error .result:" + res.getResult() + ",url:" + channel.getUrl(), e);
@@ -329,7 +335,9 @@ public class DefaultFuture implements ResponseFuture {
         lock.lock();
         try {
             response = res;
+            System.out.println("DefaultFuture#doReceived:" + response.getResult());
             if (done != null) {
+                System.out.println("DefaultFuture#doReceived-->done:" + done);
                 done.signal();
             }
         } finally {

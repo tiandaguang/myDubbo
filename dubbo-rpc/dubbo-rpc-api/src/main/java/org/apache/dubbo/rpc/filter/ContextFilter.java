@@ -18,13 +18,7 @@ package org.apache.dubbo.rpc.filter;
 
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.extension.Activate;
-import org.apache.dubbo.rpc.Filter;
-import org.apache.dubbo.rpc.Invocation;
-import org.apache.dubbo.rpc.Invoker;
-import org.apache.dubbo.rpc.Result;
-import org.apache.dubbo.rpc.RpcContext;
-import org.apache.dubbo.rpc.RpcException;
-import org.apache.dubbo.rpc.RpcInvocation;
+import org.apache.dubbo.rpc.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,16 +34,22 @@ public class ContextFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        System.out.println("ContextFilter#invoke-->invoker" + invoker.getClass() + ",this:" + this.getClass());
+
         Map<String, String> attachments = invocation.getAttachments();
         if (attachments != null) {
-            attachments = new HashMap<String, String>(attachments);
+            attachments = new HashMap<>(attachments);
             attachments.remove(Constants.PATH_KEY);
+            attachments.remove(Constants.INTERFACE_KEY);
             attachments.remove(Constants.GROUP_KEY);
             attachments.remove(Constants.VERSION_KEY);
             attachments.remove(Constants.DUBBO_VERSION_KEY);
             attachments.remove(Constants.TOKEN_KEY);
             attachments.remove(Constants.TIMEOUT_KEY);
-            attachments.remove(Constants.ASYNC_KEY);// Remove async property to avoid being passed to the following invoke chain.
+            // Remove async property to avoid being passed to the following invoke chain.
+            attachments.remove(Constants.ASYNC_KEY);
+            attachments.remove(Constants.TAG_KEY);
+            attachments.remove(Constants.FORCE_USE_TAG);
         }
         RpcContext.getContext()
                 .setInvoker(invoker)

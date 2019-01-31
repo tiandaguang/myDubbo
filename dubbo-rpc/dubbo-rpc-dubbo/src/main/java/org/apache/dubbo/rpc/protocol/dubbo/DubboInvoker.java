@@ -24,15 +24,7 @@ import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.TimeoutException;
 import org.apache.dubbo.remoting.exchange.ExchangeClient;
 import org.apache.dubbo.remoting.exchange.ResponseFuture;
-import org.apache.dubbo.rpc.AsyncRpcResult;
-import org.apache.dubbo.rpc.Invocation;
-import org.apache.dubbo.rpc.Invoker;
-import org.apache.dubbo.rpc.Result;
-import org.apache.dubbo.rpc.RpcContext;
-import org.apache.dubbo.rpc.RpcException;
-import org.apache.dubbo.rpc.RpcInvocation;
-import org.apache.dubbo.rpc.RpcResult;
-import org.apache.dubbo.rpc.SimpleAsyncRpcResult;
+import org.apache.dubbo.rpc.*;
 import org.apache.dubbo.rpc.protocol.AbstractInvoker;
 import org.apache.dubbo.rpc.support.RpcUtils;
 
@@ -68,6 +60,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
 
     @Override
     protected Result doInvoke(final Invocation invocation) throws Throwable {
+        System.out.println("DubboInvoker#doInvoke------------->invokers大小:" + invokers.size());
         RpcInvocation inv = (RpcInvocation) invocation;
         final String methodName = RpcUtils.getMethodName(invocation);
         inv.setAttachment(Constants.PATH_KEY, getUrl().getPath());
@@ -105,7 +98,11 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 return result;
             } else {
                 RpcContext.getContext().setFuture(null);
-                return (Result) currentClient.request(inv, timeout).get();
+                System.out.println("DubboInvoker#doInvoke-->request-->currentClient:" + currentClient.getClass() + ",this:" + this.getClass());
+                Object obj = currentClient.request(inv, timeout).get();
+                Result result = (Result) obj;
+                System.out.println("DubboInvoker#doInvoke-->get:" + result);
+                return result;
             }
         } catch (TimeoutException e) {
             throw new RpcException(RpcException.TIMEOUT_EXCEPTION, "Invoke remote method timeout. method: " + invocation.getMethodName() + ", provider: " + getUrl() + ", cause: " + e.getMessage(), e);

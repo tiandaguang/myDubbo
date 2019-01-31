@@ -58,6 +58,8 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
     }
 
     static void handleResponse(Channel channel, Response response) throws RemotingException {
+        System.out.println("HeaderExchangeHandler#handleResponse--------->response:" + response);
+
         if (response != null && !response.isHeartbeat()) {
             DefaultFuture.received(channel, response);
         }
@@ -78,6 +80,7 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
     }
 
     void handleRequest(final ExchangeChannel channel, Request req) throws RemotingException {
+        System.out.println("HeaderExchangeHandler#handleRequest--------->req:" + req + ",channel:" + channel);
         Response res = new Response(req.getId(), req.getVersion());
         if (req.isBroken()) {
             Object data = req.getData();
@@ -98,8 +101,12 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         }
         // find handler by message class.
         Object msg = req.getData();
+        System.out.println("HeaderExchangeHandler#handleRequest--------->msg:" + msg);
+
         try {
             // handle data.
+            System.out.println("HeaderExchangeHandler#handleRequest#handler.reply--------->handler:" + handler.getClass());
+
             CompletableFuture<Object> future = handler.reply(channel, msg);
             if (future.isDone()) {
                 res.setStatus(Response.OK);
@@ -187,6 +194,7 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
 
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        System.out.println("HeaderExchangeHandler#received-->handler:" + handler.getClass());
         channel.setAttribute(KEY_READ_TIMESTAMP, System.currentTimeMillis());
         final ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
         try {

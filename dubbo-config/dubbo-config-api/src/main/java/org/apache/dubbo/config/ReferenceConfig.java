@@ -21,12 +21,9 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.bytecode.Wrapper;
 import org.apache.dubbo.common.extension.ExtensionLoader;
-import org.apache.dubbo.common.utils.ClassHelper;
-import org.apache.dubbo.common.utils.ConfigUtils;
-import org.apache.dubbo.common.utils.NetUtils;
-import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.common.utils.CollectionUtils;
+import org.apache.dubbo.common.utils.*;
 import org.apache.dubbo.config.annotation.Reference;
+import org.apache.dubbo.config.context.ConfigManager;
 import org.apache.dubbo.config.support.Parameter;
 import org.apache.dubbo.metadata.integration.MetadataReportService;
 import org.apache.dubbo.rpc.Invoker;
@@ -38,20 +35,13 @@ import org.apache.dubbo.rpc.cluster.support.ClusterUtils;
 import org.apache.dubbo.rpc.cluster.support.RegistryAwareCluster;
 import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.model.ConsumerModel;
-import org.apache.dubbo.rpc.protocol.injvm.InjvmProtocol;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.dubbo.rpc.support.ProtocolUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static org.apache.dubbo.common.utils.NetUtils.isInvalidLocalHost;
 
@@ -68,10 +58,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
      * The {@link Protocol} implementation with adaptive functionality,it will be different in different scenarios.
      * A particular {@link Protocol} implementation is determined by the protocol attribute in the {@link URL}.
      * For example:
-     *
+     * <p>
      * <li>when the url is registry://224.5.6.7:1234/org.apache.dubbo.registry.RegistryService?application=dubbo-sample,
      * then the protocol is <b>RegistryProtocol</b></li>
-     *
+     * <p>
      * <li>when the url is dubbo://224.5.6.7:1234/org.apache.dubbo.config.api.DemoService?application=dubbo-sample, then
      * the protocol is <b>DubboProtocol</b></li>
      * <p>
@@ -106,7 +96,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
      * The interface class of the reference service
      */
     private Class<?> interfaceClass;
-    
+
     /**
      * client type
      */
@@ -195,6 +185,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         if (StringUtils.isEmpty(interfaceName)) {
             throw new IllegalStateException("<dubbo:reference interface=\"\" /> interface not allow null!");
         }
+        completeCompoundConfigs();
+        startConfigCenter();
         // get consumer's global configuration
         checkDefault();
         this.refresh();
@@ -213,18 +205,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             checkInterfaceAndMethods(interfaceClass, methods);
         }
         resolveFile();
-        if (consumer != null) {
-            inheritIfAbsentFromConsumer();
-        }
-        if (module != null) {
-            inheritIfAbsentFromModule();
-        }
-        if (application != null) {
-            inheritIfAbsentFromApplication();
-        }
         checkApplication();
         checkMetadataReport();
-        checkRegistryDataConfig();
     }
 
     public synchronized T get() {
@@ -321,16 +303,17 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         URL tmpUrl = new URL("temp", "localhost", 0, map);
         final boolean isJvmRefer;
         if (isInjvm() == null) {
-            if (url != null && url.length() > 0) { // if a url is specified, don't do local reference
-                isJvmRefer = false;
-            } else {
-                // by default, reference local service if there is
-                isJvmRefer = InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl);
-            }
+//            if (url != null && url.length() > 0) { // if a url is specified, don't do local reference
+//                isJvmRefer = false;
+//            } else {
+//                // by default, reference local service if there is
+//                isJvmRefer = InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl);
+//            }
+            isJvmRefer = false;
         } else {
-            isJvmRefer = isInjvm();
+            isJvmRefer = false;
         }
-
+        System.out.println(refprotocol.getClass());
         if (isJvmRefer) {
             URL url = new URL(Constants.LOCAL_PROTOCOL, Constants.LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
             invoker = refprotocol.refer(interfaceClass, url);
@@ -354,6 +337,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                     }
                 }
             } else { // assemble URL from register center's configuration
+                checkRegistry();
                 List<URL> us = loadRegistries(false);
                 if (CollectionUtils.isNotEmpty(us)) {
                     for (URL u : us) {
@@ -371,6 +355,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
 
             if (urls.size() == 1) {
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
+                System.out.println("ReferenceConfig   init----->invoker:" + invoker.getClass());
             } else {
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
@@ -420,45 +405,56 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
     }
 
     private void checkDefault() {
-        if (consumer == null) {
-            consumer = new ConsumerConfig();
-        }
-        consumer.refresh();
+        createConsumerIfAbsent();
     }
 
-    private void inheritIfAbsentFromConsumer() {
-        if (application == null) {
-            application = consumer.getApplication();
+    private void createConsumerIfAbsent() {
+        if (consumer != null) {
+            return;
         }
-        if (module == null) {
-            module = consumer.getModule();
-        }
-        if (registries == null) {
-            registries = consumer.getRegistries();
-        }
-        if (monitor == null) {
-            monitor = consumer.getMonitor();
-        }
+        setConsumer(
+                ConfigManager.getInstance()
+                        .getDefaultConsumer()
+                        .orElseGet(() -> {
+                            ConsumerConfig consumerConfig = new ConsumerConfig();
+                            consumerConfig.refresh();
+                            return consumerConfig;
+                        })
+        );
     }
 
-    private void inheritIfAbsentFromModule() {
-        if (registries == null) {
-            registries = module.getRegistries();
+    private void completeCompoundConfigs() {
+        if (consumer != null) {
+            if (application == null) {
+                setApplication(consumer.getApplication());
+            }
+            if (module == null) {
+                setModule(consumer.getModule());
+            }
+            if (registries == null) {
+                setRegistries(consumer.getRegistries());
+            }
+            if (monitor == null) {
+                setMonitor(consumer.getMonitor());
+            }
         }
-        if (monitor == null) {
-            monitor = module.getMonitor();
+        if (module != null) {
+            if (registries == null) {
+                setRegistries(module.getRegistries());
+            }
+            if (monitor == null) {
+                setMonitor(module.getMonitor());
+            }
+        }
+        if (application != null) {
+            if (registries == null) {
+                setRegistries(application.getRegistries());
+            }
+            if (monitor == null) {
+                setMonitor(application.getMonitor());
+            }
         }
     }
-
-    private void inheritIfAbsentFromApplication() {
-        if (registries == null) {
-            registries = application.getRegistries();
-        }
-        if (monitor == null) {
-            monitor = application.getMonitor();
-        }
-    }
-
 
     public Class<?> getInterfaceClass() {
         if (interfaceClass != null) {
@@ -539,6 +535,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
     }
 
     public void setConsumer(ConsumerConfig consumer) {
+        ConfigManager.getInstance().addConsumer(consumer);
         this.consumer = consumer;
     }
 

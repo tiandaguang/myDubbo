@@ -80,6 +80,8 @@ final class ReferenceCountExchangeClient implements ExchangeClient {
 
     @Override
     public ResponseFuture request(Object request, int timeout) throws RemotingException {
+        System.out.println("ReferenceCountExchangeClient#request------->client:" + client.getClass());
+
         return client.request(request, timeout);
     }
 

@@ -44,6 +44,9 @@ public class JavassistProxyFactory extends AbstractProxyFactory {
             protected Object doInvoke(T proxy, String methodName,
                                       Class<?>[] parameterTypes,
                                       Object[] arguments) throws Throwable {
+                System.out.println("JavassistProxyFactory#doInvoke------------>wrapper:" + wrapper.getClass());
+                System.out.println("JavassistProxyFactory#doInvoke------------>proxy:" + proxy.getClass());
+
                 return wrapper.invokeMethod(proxy, methodName, parameterTypes, arguments);
             }
         };

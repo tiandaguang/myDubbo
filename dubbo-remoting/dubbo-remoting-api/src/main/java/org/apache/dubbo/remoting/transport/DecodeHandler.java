@@ -48,6 +48,7 @@ public class DecodeHandler extends AbstractChannelHandlerDelegate {
             decode(((Response) message).getResult());
         }
 
+        System.out.println("DecodeHandler#received-->handler:" + handler.getClass());
         handler.received(channel, message);
     }
 

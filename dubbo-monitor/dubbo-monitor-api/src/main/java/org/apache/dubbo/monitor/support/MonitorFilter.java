@@ -25,12 +25,7 @@ import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.monitor.Monitor;
 import org.apache.dubbo.monitor.MonitorFactory;
 import org.apache.dubbo.monitor.MonitorService;
-import org.apache.dubbo.rpc.Filter;
-import org.apache.dubbo.rpc.Invocation;
-import org.apache.dubbo.rpc.Invoker;
-import org.apache.dubbo.rpc.Result;
-import org.apache.dubbo.rpc.RpcContext;
-import org.apache.dubbo.rpc.RpcException;
+import org.apache.dubbo.rpc.*;
 import org.apache.dubbo.rpc.support.RpcUtils;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,12 +64,15 @@ public class MonitorFilter implements Filter {
      */
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        System.out.println("MonitorFilter#invoke-->invoker" + invoker.getClass() + "isMonitor:" + String.valueOf(invoker.getUrl().hasParameter(Constants.MONITOR_KEY)));
         if (invoker.getUrl().hasParameter(Constants.MONITOR_KEY)) {
             RpcContext context = RpcContext.getContext(); // provider must fetch context before invoke() gets called
             String remoteHost = context.getRemoteHost();
             long start = System.currentTimeMillis(); // record start timestamp
             getConcurrent(invoker, invocation).incrementAndGet(); // count up
             try {
+                System.out.println("MonitorFilter#invoke-->invoker---> isMonitor: invoker" + invoker.getClass());
+
                 Result result = invoker.invoke(invocation); // proceed invocation chain
                 collect(invoker, invocation, result, remoteHost, start, false);
                 return result;
@@ -85,6 +83,8 @@ public class MonitorFilter implements Filter {
                 getConcurrent(invoker, invocation).decrementAndGet(); // count down
             }
         } else {
+            System.out.println("MonitorFilter#invoke-->invoker---> is not Monitor: invoker" + invoker.getClass());
+
             return invoker.invoke(invocation);
         }
     }

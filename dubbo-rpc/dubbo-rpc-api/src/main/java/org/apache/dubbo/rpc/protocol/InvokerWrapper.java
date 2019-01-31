@@ -53,6 +53,7 @@ public class InvokerWrapper<T> implements Invoker<T> {
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
+        System.out.println("InvokerWrapper#invoke---------->invoker:" + invoker.getClass() + ",this:" + this.getClass());
         return invoker.invoke(invocation);
     }
 

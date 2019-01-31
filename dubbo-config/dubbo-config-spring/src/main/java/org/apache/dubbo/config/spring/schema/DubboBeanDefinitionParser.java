@@ -21,9 +21,15 @@ import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.ReflectUtils;
 import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.config.*;
+import org.apache.dubbo.config.ArgumentConfig;
+import org.apache.dubbo.config.ConsumerConfig;
+import org.apache.dubbo.config.MethodConfig;
+import org.apache.dubbo.config.ProtocolConfig;
+import org.apache.dubbo.config.ProviderConfig;
+import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.spring.ReferenceBean;
 import org.apache.dubbo.config.spring.ServiceBean;
+
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -41,7 +47,9 @@ import org.w3c.dom.NodeList;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -157,7 +165,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                                 RegistryConfig registryConfig = new RegistryConfig();
                                 registryConfig.setAddress(RegistryConfig.NO_AVAILABLE);
                                 beanDefinition.getPropertyValues().addPropertyValue(beanProperty, registryConfig);
-                            } else if ("provider".equals(property) || "protocol".equals(property) || "registry".equals(property)) {
+                            } else if ("provider".equals(property) || "registry".equals(property) || ("protocol".equals(property) && ServiceBean.class.equals(beanClass))) {
                                 /**
                                  * For 'provider' 'protocol' 'registry', keep literal value (should be id/name) and set the value to 'registryIds' 'providerIds' protocolIds'
                                  * The following process should make sure each id refers to the corresponding instance, here's how to find the instance for different use cases:
@@ -245,7 +253,8 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
                 if (node instanceof Element) {
-                    if (tag.equals(node.getNodeName()) || tag.equals(node.getLocalName())) {
+                    if (tag.equals(node.getNodeName())
+                            || tag.equals(node.getLocalName())) {
                         if (first) {
                             first = false;
                             String isDefault = element.getAttribute("default");
@@ -381,28 +390,4 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         return parse(element, parserContext, beanClass, required);
     }
 
-    public static void main(String[] args) {
-        String beanProperty = "setName".substring(3, 4).toLowerCase() + "setName".substring(4);
-        System.out.println(beanProperty);
-        String property = StringUtils.camelToSplitName(beanProperty, "-");
-        System.out.println(property);
-
-        String value = "test.hello";
-        int index = value.lastIndexOf(".");
-        String returnRef = value.substring(0, index);
-        String returnMethod = value.substring(index + 1);
-
-        System.out.println(returnRef);
-        System.out.println(returnMethod);
-
-
-        Map<String, String> map = new HashMap<>();
-
-        while (map.containsKey("a")){
-            System.out.println("包含");
-        }
-
-        System.out.println("aaaa");
-        System.out.println(map);
-    }
 }

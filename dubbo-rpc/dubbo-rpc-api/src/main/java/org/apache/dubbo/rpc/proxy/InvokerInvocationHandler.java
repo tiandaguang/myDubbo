@@ -53,7 +53,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if ("equals".equals(methodName) && parameterTypes.length == 1) {
             return invoker.equals(args[0]);
         }
-
+        System.out.println("InvokerInvocationHandler#invoke--------->invoker:" + invoker.getClass());
         return invoker.invoke(createInvocation(method, args)).recreate();
     }
 
